@@ -1,41 +1,83 @@
-; program to sort numbers in ascending order  using bubble sort
+; PROGRAM :: SORT A GIVEN SET OF 'N' NUMBERS IN ASCENDING AND DESCENDING
+; ORDER USING BUBBLE SORT ALGORITHM
 
+.MODEL SMALL
 
-.model small
+DISPLAY MACRO MSG
+        LEA DX, MSG
+        MOV AH, 09H
+        INT 21H
+ENDM
 
+.DATA
+LIST DB 02H, 01H, 34H, 0F4H, 09H, 05H
+NUMBER EQU $-LIST
+MSG1 DB  "1 >> SORT IN ASCENDING ORDER$"
+MSG2 DB 0DH, 0AH, "2 >> SORT IN DESCENDING ORDER"
+MSG3 DB 0DH, 0AH, "3 >> EXIT$"
+MSG4 DB 0DH, 0AH, "ENTER YOUR CHOICE  :: $"
+MSG5 DB 0DH, 0AH, "INVALID CHOICE ENTERED...$"
 
-.data
-a db 34h,22h,12h,24h            ; array declaration
-siz dw $-a                      ;  gives total no of elemnts in array
-                                ; $-last add of array  a-first add of array
-                                ; $-a==last add-first add==total elemnts
-                                ; siz dw 04h
+.CODE
+START : MOV AX, @DATA
+        MOV DS, AX
+        LEA SI, LIST
+        MOV CH, NUMBER-1          ; CL STORES THE NUMBER OF ELEMENTS IN LIST
+        DISPLAY MSG1              ; DISPLAY THE MENU...
+        DISPLAY MSG2
+        DISPLAY MSG3
+        DISPLAY MSG4
+        MOV AH, 01H
+        INT 21H
+        SUB AL, 30H
+        CMP AL, 01H             ; INPUT=1? SORT IN ASCENDING ORDER
+        JE ASCSORT
+        CMP AL, 02H             ; INPUT=2? SORT IN DESCENDING ORDER
+        JE DESSORT
+        CMP AL, 03H             ; INPUT=3? EXIT
+        JE FINAL
+        DISPLAY MSG4
+        JMP FINAL
+ASCSORT:MOV BL, 00H
+AGAIN:  MOV SI, OFFSET LIST
+        MOV CL, 00H             ; J VALUE
+        MOV BH, CH
+        SUB BH, BL              ; N-1-i
+NPASS:  CMP CL, BH
+        JNC NEXT
+        MOV AL, [SI]
+        MOV BP, 01H
+        CMP AL, DS: [BP][SI]
+        JC _NOPE
+        XCHG AL, [SI+1]
+        XCHG [SI], AL
+_NOPE : INC CL
+        INC SI
+        JMP NPASS
+NEXT:   INC BL
+        CMP BL, CH
+        JC AGAIN
+        JMP FINAL
 
-.code
-start:          mov ax,@data       ; memory initialization
-                mov ds,ax
-
-                mov bx,siz         ; bx=04
-                dec bx             ; bx=03
-
-outloop:        mov cx,bx          ; cx=03
-                mov si,0           ; si=frst elemt
-
-inloop:         mov al, a[si]      ;  al=a[si]=a[0]===34    al=78  al=78
-                inc si             ;  si=si+1=======78      si=12  si=34
-
-                cmp al,a[si]       ; al vs a[si]=====34 vs 78      78 vs 12
-                jb goon            ;  tx to goon if cf=1  jb/jc
-
-                xchg al,a[si]      ;   78   78
-
-                mov a[si-1],al     ;   12   78          pass 1
-
-goon:           loop inloop        ; cx=cx-1  jnz  inloop
-
-                dec bx             ;  pass 2
-                jnz outloop
-
-                mov ah,4ch
-                int 21h
-end start
+DESSORT:MOV BL, 00H
+AGAIN1: MOV SI, OFFSET LIST
+        MOV CL, 00H             ; J VALUE
+        MOV BH, CH
+        SUB BH, BL              ; N-1-i
+NPASS1: CMP CL, BH
+        JNC NEXT1
+        MOV AL, [SI]
+        MOV BP, 01H
+        CMP AL, DS: [BP][SI]
+        JNC _NOPE1
+        XCHG AL, [SI+1]
+        XCHG [SI], AL
+_NOPE1: INC CL
+        INC SI
+        JMP NPASS1
+NEXT1:  INC BL
+        CMP BL, CH
+        JC AGAIN1
+FINAL : MOV AH, 4CH
+        INT 21H
+END START
